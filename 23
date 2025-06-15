@@ -1,0 +1,135 @@
+#include <iostream>
+#include <cstring>
+
+class Book
+{
+    char* title;
+    char* author;
+    int year;
+
+    char* copyString(const char* src)
+    {
+        char* result = new char[strlen(src) + 1];
+        strcpy(result, src);
+        return result;
+    }
+
+public:
+    Book(const char* t, const char* a, int y) : year(y)
+    {
+        title = copyString(t);
+        author = copyString(a);
+    }
+
+    Book(const Book& other) : year(other.year)
+    {
+        title = copyString(other.title);
+        author = copyString(other.author);
+    }
+
+    ~Book()
+    {
+        delete[] title;
+        delete[] author;
+    }
+
+    void print() const
+    {
+        std::cout << "Name: " << title << ", Author: " << author << ", Year: " << year << "\n";
+    }
+
+    void setTitle(const char* newTitle)
+    {
+        delete[] title;
+        title = copyString(newTitle);
+    }
+};
+
+class Library
+{
+    char* name;
+    Book** books;
+    int bookCount;
+
+    char* copyString(const char* src)
+    {
+        char* result = new char[strlen(src) + 1];
+        strcpy(result, src);
+        return result;
+    }
+
+public:
+    Library(const char* n) : bookCount(0), books(nullptr)
+    {
+        name = copyString(n);
+    }
+
+    Library(const Library& other) : bookCount(other.bookCount)
+    {
+        name = copyString(other.name);
+        books = new Book * [bookCount];
+        for (int i = 0; i < bookCount; ++i) {
+            books[i] = new Book(*other.books[i]);
+        }
+    }
+
+    ~Library()
+    {
+        delete[] name;
+        for (int i = 0; i < bookCount; ++i)
+        {
+            delete books[i];
+        }
+        delete[] books;
+    }
+
+    void addBook(const Book& book)
+    {
+        Book** newBooks = new Book * [bookCount + 1];
+        for (int i = 0; i < bookCount; ++i)
+        {
+            newBooks[i] = books[i];
+        }
+        newBooks[bookCount] = new Book(book);
+        delete[] books;
+        books = newBooks;
+        ++bookCount;
+    }
+
+    void print() const
+    {
+        std::cout << "Library: " << name << ", Books: " << bookCount << "\n";
+        for (int i = 0; i < bookCount; ++i)
+        {
+            books[i]->print();
+        }
+    }
+};
+
+int main()
+{
+    Book book1("Jurassic Park", "Michael Chricton", 1990);
+    Book book2("Mein Kampf", "Asujdau", 1925);
+
+    Library lib("Central lib");
+    lib.addBook(book1);
+    lib.addBook(book2);
+
+    std::cout << "\nOriginal lib:\n";
+    lib.print();
+
+    Library copyLib = lib;
+
+    std::cout << "\nCopy lib:\n";
+    copyLib.print();
+
+    book2.setTitle("Changed name");
+
+    std::cout << "\nAfter change:\n";
+    std::cout << "Origin:\n";
+    lib.print();
+    std::cout << "Copy:\n";
+    copyLib.print();
+
+    return 0;
+}
